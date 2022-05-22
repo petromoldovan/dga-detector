@@ -7,6 +7,8 @@ name = "pypi"
 flask = "*"
 python-dotenv = "*"
 sklearn = "*"
+requests = "*"
+tldextract = "*"
 
 [dev-packages]
 
