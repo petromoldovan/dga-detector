@@ -9,6 +9,7 @@ python-dotenv = "*"
 sklearn = "*"
 requests = "*"
 tldextract = "*"
+pyenchant = "*"
 
 [dev-packages]
 
