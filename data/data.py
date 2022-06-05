@@ -11,14 +11,14 @@ from dga import corebot, simda, banjori, cryptolocker, dicrypt, kraken, locky, q
 BENIGN_ALEXA_URL = 'http://s3.amazonaws.com/alexa-static/top-1m.csv.zip'
 
 # items from DGArchive
-MAX_ITEMS_DGARCHIVE = 50 # TODO: make more
+MAX_ITEMS_DGARCHIVE = 30 # TODO: make more
 # items per self generated algorith
-DOMAINS_PER_ALGORITHM = 50 # TODO: make more
+DOMAINS_PER_ALGORITHM = 30 # TODO: make more
 # dictionary of all used DGA domains to avoid repetitions
 ALL_MALICIOUS_DOMAINS = {}
 
 
-def get_benign_domains(number_of_items=1000):
+def get_benign_domains(number_of_items=False):
     filename = BENIGN_ALEXA_URL.split('/')[-1]
     # fetch zip file
     r = requests.get(BENIGN_ALEXA_URL, stream=True)
@@ -30,7 +30,11 @@ def get_benign_domains(number_of_items=1000):
     # get data from file
     archive = ZipFile(filename, 'r')
     filename_csv = filename.replace(".zip", "")
-    data_raw = archive.read(filename_csv).split()[:number_of_items]
+
+    if not number_of_items:
+        data_raw = archive.read(filename_csv).split()
+    else:
+        data_raw = archive.read(filename_csv).split()[:number_of_items]
 
     # extract needed number of domains
     being_domains = []

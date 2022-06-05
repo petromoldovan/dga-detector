@@ -23,3 +23,8 @@ curl -X POST http://127.0.0.1:5000/detect \
     -H "Content-Type: application/json" \
     -d '{"domain": "sadasdasdewde.com"}'
 ```
+
+### Unit tests
+``` sh
+pipenv run python -m unittest discover tests
+```

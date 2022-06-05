@@ -1,7 +1,8 @@
-from data.data import get_data
-from enchant.tokenize import get_tokenizer
 import enchant
 import math
+
+from data.data import get_data
+from data.ngram.ngram import calculate_ngram_reputation_score
 
 # CONSTANTS
 VOWELS = 'aeiou'
@@ -26,31 +27,35 @@ def prepare_data_for_model():
         item_features.append(domain_length)
 
         # 2. Ratio of real words
-        ratio_of_real_words, ratio_of_longest_real_word = get_real_words_ratio(dictionary, domain, domain_length)
+        ratio_of_real_words, ratio_of_longest_real_word = get_real_words_ratio(dictionary, domain)
         item_features.append(ratio_of_real_words)
-        # 3. Ration of the longest real word
+        # 3. Ratio of the longest real word
         item_features.append(ratio_of_longest_real_word)
 
         # 4. Ratio of numeric characters
         numbers_ratio = get_numbers_ratio(domain)
         item_features.append(numbers_ratio)
 
-        # 5. Pronounceability score???
-
         # SOURCE: Almashhadani
-        # 6. Max consecutive vowels
+        # 5. Max consecutive vowels
         item_features.append(count_max_consecutive_characters_in_scope(domain, VOWELS))
 
-        # 7. Max consecutive consonants
+        # 6. Max consecutive consonants
         item_features.append(count_max_consecutive_characters_in_scope(domain, CONSONANTS))
 
-        # 8. Shanon entropy
+        # 7. Shanon entropy
         item_features.append(shannon_entropy(domain))
 
         # Source: Woodbridge
+        # 8. vowel to consonant ratio
+        item_features.append(get_vowel_to_consonant_ratio(domain))
+
         # 9. n-gram normality score
-        # 10. vowel to consonant ratio
-        #
+        item_features.append(calculate_ngram_reputation_score(domain))
+
+        # own metric
+        # 10. percentage of repeating chars
+        item_features.append(calculate_percentage_of_repeating_chars(domain))
 
         # push to resulting array
         features.append(item_features)
@@ -67,18 +72,19 @@ def get_numbers_ratio(domain):
     return count / len(domain)
 
 
-def get_real_words_ratio(dictionary, domain, domain_length):
+def get_real_words_ratio(dictionary, domain):
     # length of real words devided by domain length
     real_words = []
     start_idx = 0
+    domain_length = len(domain)
     while start_idx < domain_length:
         end_idx = domain_length
         found = False
         while start_idx < end_idx:
             substring = domain[start_idx:end_idx]
 
-            # TODO: consider only words that are at least 3 chars. Experiment with it!!! try 4.
-            if len(substring) > 2 and dictionary.check(substring):
+            # TODO: consider only words that are at least 4 chars.
+            if len(substring) > 3 and dictionary.check(substring):
                 real_words.append(substring)
                 start_idx = end_idx
                 found = True
@@ -90,7 +96,6 @@ def get_real_words_ratio(dictionary, domain, domain_length):
             start_idx += 1
 
     all_words_length = len(''.join(real_words))
-
     # print("========")
     # print("domain", domain)
     # print("real_words", real_words)
@@ -127,6 +132,41 @@ def count_max_consecutive_characters_in_scope(domain, scope):
             results.append(0)
 
     return max(results)
+
+
+def get_vowel_to_consonant_ratio(domain):
+    vowels_count = 0
+    consonants_count = 0
+
+    for letter in domain:
+        if letter in VOWELS:
+            vowels_count += 1
+        elif letter in CONSONANTS:
+            consonants_count += 1
+
+    if consonants_count > 0:
+        return vowels_count / consonants_count
+
+    return 0
+
+
+def calculate_percentage_of_repeating_chars(domain):
+    chars = {}
+
+    # get map of unique chars
+    for char in domain:
+        if char in chars:
+            chars[char] += 1
+
+        else:
+            chars[char] = 1
+
+    repeating_chars = 0
+    for key in chars:
+        if chars[key] > 1:
+            repeating_chars += 1
+
+    return repeating_chars / len(chars)
 
 
 if __name__ == '__main__':
