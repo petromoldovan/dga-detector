@@ -28,7 +28,7 @@ def get_ngram_dict_db():
 
 def calculate_ngram_db():
     # use only benign domains for ngram
-    benign_domains, _ = get_benign_domains()     # get total: 930892
+    benign_domains, _ = get_benign_domains()     # get total: 838741
 
     total_substrings_count = 0
     ngram_count_dictionary = {}
@@ -80,8 +80,10 @@ def get_ngram_substrings(domain, n):
     return res
 
 
-def calculate_ngram_reputation_score(domain):
-    _, weights_db = get_ngram_dict_db()
+def calculate_ngram_reputation_score(domain, weights_db):
+    if not weights_db:
+        _, weights_db = get_ngram_dict_db()
+
     score = 0
 
     for n in NGRAM_SUBSTRING_LENGTH:

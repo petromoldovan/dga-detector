@@ -1,12 +1,52 @@
 import enchant
 import math
+import json
 
 from data.data import get_data
-from data.ngram.ngram import calculate_ngram_reputation_score
+from data.ngram.ngram import calculate_ngram_reputation_score, get_ngram_dict_db
 
 # CONSTANTS
 VOWELS = 'aeiou'
 CONSONANTS = "bcdfghjklmnpqrstvwxyz"
+
+DATA_FEATURES_FILE = 'models/features.json'
+DATA_LABELS_FILE = 'models/labels.json'
+
+
+def get_data_for_model():
+    labels = []
+    try:
+        with open(DATA_LABELS_FILE) as f:
+            labels = json.load(f)
+    except:
+        pass
+
+    features = []
+    try:
+        with open(DATA_FEATURES_FILE) as f:
+            features = json.load(f)
+    except:
+        pass
+
+    if len(labels) > 0 and len(features) > 0:
+        print("Reading data from file:")
+        print ("len(labels)", len(labels))
+        print ("len(features)", len(features))
+        return labels, features
+
+    # if no data available recalculate again
+    labels, features = prepare_data_for_model()
+
+    # save data
+    with open(DATA_LABELS_FILE, 'w') as fp:
+        fp.truncate(0)
+        json.dump(labels, fp)
+
+    with open(DATA_FEATURES_FILE, 'w') as fp:
+        fp.truncate(0)
+        json.dump(features, fp)
+
+    return labels, features
 
 
 def prepare_data_for_model():
@@ -16,10 +56,18 @@ def prepare_data_for_model():
     # EN dictionary
     dictionary = enchant.Dict("en_US")
 
-    features = []
+    # NGram DB. Initialize once to speed up feature extraction.
+    _, weights_db = get_ngram_dict_db()
+
     # feature extraction
+    features = []
     for domain in raw_data:
+        if not domain or domain == "":
+            continue
+
         item_features = []
+
+        # print ("domain", domain)
 
         # SOURCE: Y. Li et al.: Machine Learning Framework for DGA-Based Malware Detection
         # 1. domain length
@@ -51,7 +99,7 @@ def prepare_data_for_model():
         item_features.append(get_vowel_to_consonant_ratio(domain))
 
         # 9. n-gram normality score
-        item_features.append(calculate_ngram_reputation_score(domain))
+        item_features.append(calculate_ngram_reputation_score(domain, weights_db))
 
         # own metric
         # 10. percentage of repeating chars
@@ -60,7 +108,7 @@ def prepare_data_for_model():
         # push to resulting array
         features.append(item_features)
 
-    return raw_data, labels, features
+    return labels, features
 
 
 def get_numbers_ratio(domain):
@@ -170,4 +218,4 @@ def calculate_percentage_of_repeating_chars(domain):
 
 
 if __name__ == '__main__':
-    prepare_data_for_model()
+    get_data_for_model()

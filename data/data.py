@@ -1,4 +1,5 @@
 import os
+from os import walk
 import math
 import requests
 from datetime import datetime
@@ -11,9 +12,8 @@ from dga import corebot, simda, banjori, cryptolocker, dicrypt, kraken, locky, q
 BENIGN_ALEXA_URL = 'http://s3.amazonaws.com/alexa-static/top-1m.csv.zip'
 
 # items from DGArchive
-MAX_ITEMS_DGARCHIVE = 30 # TODO: make more
-# items per self generated algorith
-DOMAINS_PER_ALGORITHM = 30 # TODO: make more
+MAX_ITEMS_DGARCHIVE = 10 # TODO: make more
+
 # dictionary of all used DGA domains to avoid repetitions
 ALL_MALICIOUS_DOMAINS = {}
 
@@ -31,14 +31,16 @@ def get_benign_domains(number_of_items=False):
     archive = ZipFile(filename, 'r')
     filename_csv = filename.replace(".zip", "")
 
-    if not number_of_items:
-        data_raw = archive.read(filename_csv).split()
-    else:
-        data_raw = archive.read(filename_csv).split()[:number_of_items]
+    data_raw = archive.read(filename_csv).split()
 
     # extract needed number of domains
     being_domains = []
     for d in data_raw:
+        # exit condition
+        if number_of_items:
+            if len(being_domains) == number_of_items:
+                break
+
         d = str(d).replace("'", "")
         particles = d.split(',')
 
@@ -46,12 +48,16 @@ def get_benign_domains(number_of_items=False):
 
         # extract only second level domain
         domain = tldextract.extract(domain)[1]
+
+        if not domain or domain == "":
+            continue
+
         being_domains.append(domain)
 
     # drop zip file
     os.remove(filename)
 
-    benign_labels = ['benign']*number_of_items
+    benign_labels = ['benign']*len(being_domains)
 
     return being_domains, benign_labels
 
@@ -59,6 +65,9 @@ def get_benign_domains(number_of_items=False):
 def get_dga_domains_self_generated():
     malicious_domains = []
     malicious_labels = []
+
+    # items per self generated algorith
+    DOMAINS_PER_ALGORITHM = 30  # TODO: make more
 
     # banjori
     malicious_domains += banjori.generate_domains(DOMAINS_PER_ALGORITHM)
@@ -118,7 +127,6 @@ def get_dga_domains_dgarchive():
     malicious_domains = []
     malicious_labels = []
 
-    from os import walk
     # get all file names
     f_names = []
     for (dirpath, dirnames, filenames) in walk('data/d_archive/'):
@@ -146,6 +154,9 @@ def extract_dgarchive_domains(file_name):
             # drop top level domain
             domain = tldextract.extract(domain)[1]
 
+            if not domain or domain == "":
+                continue
+
             # check that there are no domain repetitions
             if domain in ALL_MALICIOUS_DOMAINS:
                 continue
@@ -161,19 +172,16 @@ def get_dga_domains():
     malicious_domains = []
     malicious_labels = []
 
+    # NOTE: not used now as the main data input is the DArchive
     # Self generated
-    s_domains, s_labels = get_dga_domains_self_generated()
+    # s_domains, s_labels = get_dga_domains_self_generated()
+    # malicious_domains += s_domains
+    # malicious_labels += s_labels
 
     # DGArchive
     d_domains, d_labels = get_dga_domains_dgarchive()
-
-    malicious_domains += s_domains
-    malicious_labels += s_labels
-
     malicious_domains += d_domains
     malicious_labels += d_labels
-
-    print('total malicios', len(malicious_domains))
 
     return malicious_domains, malicious_labels
 
@@ -182,11 +190,16 @@ def get_data():
     # get DGA domains
     malicious_domains, malicious_labels = get_dga_domains()
 
-    if len(malicious_domains) > 1000000:
-        raise ValueError('Too many DGAs generated')
-
     # get the same number of real domains as DGA domains. Classes must be balanced.
     benign_domains, benign_labels = get_benign_domains(len(malicious_domains))
+
+    print('---------------------')
+    print('sample size')
+    print('malicios', len(malicious_domains), len(malicious_labels))
+    print('benign', len(benign_domains), len(benign_labels))
+
+    if len(malicious_domains) > len(benign_domains):
+        raise ValueError('Too many DGAs generated')
 
     all_domains = []
     all_domains += benign_domains
@@ -195,9 +208,6 @@ def get_data():
     all_labels = []
     all_labels += benign_labels
     all_labels += malicious_labels
-
-    # print ("all_domains", all_domains)
-    # print ("all_labels", all_labels)
 
     return all_domains, all_labels
 
