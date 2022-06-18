@@ -12,7 +12,7 @@ from dga import corebot, simda, banjori, cryptolocker, dicrypt, kraken, locky, q
 BENIGN_ALEXA_URL = 'http://s3.amazonaws.com/alexa-static/top-1m.csv.zip'
 
 # items from DGArchive
-MAX_ITEMS_DGARCHIVE = 10 # TODO: make more
+MAX_ITEMS_DGARCHIVE = 10000 # TODO: make more
 
 # dictionary of all used DGA domains to avoid repetitions
 ALL_MALICIOUS_DOMAINS = {}

@@ -9,9 +9,10 @@ from data.ngram.ngram import calculate_ngram_reputation_score, get_ngram_dict_db
 VOWELS = 'aeiou'
 CONSONANTS = "bcdfghjklmnpqrstvwxyz"
 
-DATA_FEATURES_FILE = 'models/features.json'
-DATA_LABELS_FILE = 'models/labels.json'
-
+# DATA_FEATURES_FILE = 'data/db_features/features.json'
+# DATA_LABELS_FILE = 'data/db_features/labels.json'
+DATA_FEATURES_FILE = 'data/db_features/features-600k.json'
+DATA_LABELS_FILE = 'data/db_features/labels-600k.json'
 
 def get_data_for_model():
     labels = []
@@ -86,7 +87,7 @@ def prepare_data_for_model():
 
         # SOURCE: Almashhadani
         # 5. Max consecutive vowels
-        item_features.append(count_max_consecutive_characters_in_scope(domain, VOWELS))
+        # item_features.append(count_max_consecutive_characters_in_scope(domain, VOWELS))
 
         # 6. Max consecutive consonants
         item_features.append(count_max_consecutive_characters_in_scope(domain, CONSONANTS))
