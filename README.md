@@ -1,6 +1,6 @@
 ## DGA Detection Tool
 
-TODO:
+DGA Detection Tool uses machine learning to detect if a domain is DGA-based.
 
 ## Core Dependencies
 
@@ -12,9 +12,14 @@ TODO:
 pipenv install
 ```
 
+Train model:
+``` sh
+pipenv run python ./models/train.py
+```
+
 Start classification API:
 ``` sh
-pipenv run flask run
+pipenv run python ./server.py
 ```
 
 TESTING

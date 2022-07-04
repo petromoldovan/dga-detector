@@ -3,14 +3,12 @@ import time
 from models.feature_extraction import get_data_for_model
 
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.preprocessing import StandardScaler
 import numpy as np
 from sklearn.model_selection import KFold
 
@@ -112,9 +110,6 @@ def train():
             print("recall", round(np.mean(results[model][split]['recall']), 2))
             print("f1_score", round(np.mean(results[model][split]['f1_score']), 2))
             print("time", round(np.mean(results[model][split]['time']), 2))
-
-        # print(classification_report(Y_test, predictions))
-        # return
 
 
 if __name__ == '__main__':

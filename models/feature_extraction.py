@@ -9,10 +9,8 @@ from data.ngram.ngram import calculate_ngram_reputation_score, get_ngram_dict_db
 VOWELS = 'aeiou'
 CONSONANTS = "bcdfghjklmnpqrstvwxyz"
 
-# DATA_FEATURES_FILE = 'data/db_features/features.json'
-# DATA_LABELS_FILE = 'data/db_features/labels.json'
-DATA_FEATURES_FILE = 'data/db_features/features-600k.json'
-DATA_LABELS_FILE = 'data/db_features/labels-600k.json'
+DATA_FEATURES_FILE = 'data/db_features/features.json'
+DATA_LABELS_FILE = 'data/db_features/labels.json'
 
 def get_data_for_model():
     labels = []
@@ -54,6 +52,13 @@ def prepare_data_for_model():
     # TODO: remove
     raw_data, labels = get_data()
 
+    # feature extraction
+    features = extract_features(raw_data)
+
+    return labels, features
+
+
+def extract_features(domains):
     # EN dictionary
     dictionary = enchant.Dict("en_US")
 
@@ -62,7 +67,7 @@ def prepare_data_for_model():
 
     # feature extraction
     features = []
-    for domain in raw_data:
+    for domain in domains:
         if not domain or domain == "":
             continue
 
@@ -109,7 +114,7 @@ def prepare_data_for_model():
         # push to resulting array
         features.append(item_features)
 
-    return labels, features
+    return features
 
 
 def get_numbers_ratio(domain):
